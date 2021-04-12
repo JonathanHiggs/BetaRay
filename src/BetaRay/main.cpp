@@ -1,15 +1,20 @@
 #include <BetaRay/Ray.hpp>
 #include <BetaRay/Files/Image.hpp>
+#include <BetaRay/Hittables/Sphere.hpp>
 #include <BetaRay/Utils/ProgressMeter.hpp>
 
 
 using namespace BetaRay;
 using namespace BetaRay::Files;
+using namespace BetaRay::Hittables;
 using namespace BetaRay::Utils;
 
 
-Color RayColor(Ray const & ray)
+Color RayColor(Ray const & ray, Sphere const & sphere)
 {
+    if (sphere.Hit(ray))
+        return Color(1, 0, 0);
+
     auto d = glm::clamp(ray.Direction, -1.0, 1.0);
     auto t = 0.5 * (ray.Direction.y + 1.0);
     return (1.0 - t) * Color(1.0, 1.0, 1.0) + t * Color(0.5, 0.7, 1.0);
@@ -31,6 +36,9 @@ int main()
     auto vertical = Vec(0.0, viewportHeight, 0.0);
     auto lowerLeft = origin - horizontal / 2.0 - vertical / 2.0 - Vec(0.0, 0.0, focalLength);
 
+    // Scene
+    Sphere sphere(Point(0, 0, -1), 0.5);
+
     // Render
     ProgressMeter meter(image.Height);
 
@@ -43,7 +51,7 @@ int main()
 
             auto ray = Ray(origin, lowerLeft + u * horizontal + v * vertical - origin);
 
-            auto color = RayColor(ray);
+            auto color = RayColor(ray, sphere);
 
             image.WritePixel(x, y, color);
 
