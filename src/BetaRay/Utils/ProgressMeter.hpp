@@ -11,7 +11,7 @@ namespace BetaRay::Utils
     u32 ConsoleWidth()
     {
         CONSOLE_SCREEN_BUFFER_INFO info;
-        GetConsoleScreenBufferInfo(GetStdHandle(STD_ERROR_HANDLE), &info);
+        GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &info);
         return info.srWindow.Right - info.srWindow.Left + 1;
     }
 
@@ -26,7 +26,7 @@ namespace BetaRay::Utils
             : Lines(lines)
             , Width(glm::clamp(ConsoleWidth(), 20u, 200u))
         {
-            std::cerr << '|' << std::string(Width - 2, '-') << "|\n";
+            std::cout << '|' << std::string(Width - 2, '-') << "|\n";
         }
 
         void Set(u32 line)
@@ -35,7 +35,7 @@ namespace BetaRay::Utils
 
             while (Progress < progress)
             {
-                std::cerr << '#';
+                std::cout << '#';
                 ++Progress;
             }
         }

@@ -13,6 +13,7 @@
 #include <vector>
 
 #include <glm/glm.hpp>
+#include <glm/gtc/random.hpp>
 #include <glm/gtx/norm.hpp>
 
 
@@ -34,5 +35,17 @@ namespace BetaRay
     using Distance = Scalar;
     using Point = Vec;
     using Color = Vec;
+
+
+    namespace Colors
+    {
+
+        constexpr Color Black   = Color(0.0);
+        constexpr Color White   = Color(1.0);
+        constexpr Color Red     = Color(1.0, 0.0, 0.0);
+        constexpr Color Green   = Color(0.0, 1.0, 0.0);
+        constexpr Color Blue    = Color(0.0, 0.0, 1.0);
+
+    }
 
 }
