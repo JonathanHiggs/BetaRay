@@ -1,5 +1,6 @@
 #include <BetaRay/Ray.hpp>
 #include <BetaRay/Files/Image.hpp>
+#include <BetaRay/Hittables/HittableList.hpp>
 #include <BetaRay/Hittables/Sphere.hpp>
 #include <BetaRay/Utils/ProgressMeter.hpp>
 
@@ -10,9 +11,9 @@ using namespace BetaRay::Hittables;
 using namespace BetaRay::Utils;
 
 
-Color RayColor(Ray const & ray, Sphere const & sphere)
+Color RayColor(Ray const & ray, IHittable const & scene)
 {
-    auto result = sphere.Hit(ray);
+    auto result = scene.Hit(ray, 0.0, std::numeric_limits<Scalar>::infinity());
     if (result.has_value())
     {
         auto normal = result.value().Normal;
@@ -41,7 +42,9 @@ int main()
     auto lowerLeft = origin - horizontal / 2.0 - vertical / 2.0 - Vec(0.0, 0.0, focalLength);
 
     // Scene
-    Sphere sphere(Point(0, 0, -1), 0.5);
+    auto scene = HittableList();
+    scene.Objects.emplace_back(std::make_shared<Sphere>(Point(0, 0, -1), 0.5));
+    scene.Objects.emplace_back(std::make_shared<Sphere>(Point(0, -100.5, -1), 100));
 
     // Render
     ProgressMeter meter(image.Height);
@@ -55,7 +58,7 @@ int main()
 
             auto ray = Ray(origin, lowerLeft + u * horizontal + v * vertical - origin);
 
-            auto color = RayColor(ray, sphere);
+            auto color = RayColor(ray, scene);
 
             image.WritePixel(x, y, color);
 

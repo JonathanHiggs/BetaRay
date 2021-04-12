@@ -1,13 +1,12 @@
 #pragma once
 
-#include <BetaRay/Ray.hpp>
-#include <BetaRay/Hittables/HitResult.hpp>
+#include <BetaRay/Hittables/IHittable.hpp>
 
 
 namespace BetaRay::Hittables
 {
 
-    class Sphere
+    class Sphere : public IHittable
     {
     public:
         Point Center;
@@ -17,7 +16,7 @@ namespace BetaRay::Hittables
             : Center(center), Radius(radius)
         { }
 
-        std::optional<HitResult> Hit(Ray const & ray) const
+        std::optional<HitResult> Hit(Ray const & ray, Scalar tMin, Scalar tMax) const override
         {
             auto oc = ray.Origin - Center;
             auto a = glm::dot(ray.Direction, ray.Direction);
@@ -28,11 +27,27 @@ namespace BetaRay::Hittables
             if (discriminant < 0.0)
                 return std::nullopt;
 
-            auto intersect = (-halfB - glm::sqrt(discriminant)) / a;
+            auto sqrtDisc = glm::sqrt(discriminant);
+
+            // Check: root is in ray direction units, not absolute distance
+            auto root = (- halfB - sqrtDisc) / a;
+            if (root < tMin || root > tMax)
+            {
+                root = (-halfB + sqrtDisc) / a;
+                if (root < tMin || root > tMax)
+                    return std::nullopt;
+            }
+
+            auto intersect = root;
             auto point = ray.At(intersect);
             auto normal = (point - Center) / Radius;
+            bool frontFace = glm::dot(ray.Direction, normal) < 0.0;
 
-            return HitResult { point, normal, intersect };
+            return HitResult {
+                point,
+                frontFace ? normal : -normal,
+                intersect,
+                frontFace };
         }
     };
 

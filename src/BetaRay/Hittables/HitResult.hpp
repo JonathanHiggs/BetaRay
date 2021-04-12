@@ -11,6 +11,9 @@ namespace BetaRay::Hittables
         Point Point;
         Vec Normal;
         Scalar Intersect;
+        bool FrontFace;
     };
+
+    using HitResultOpt = std::optional<HitResult>;
 
 }
