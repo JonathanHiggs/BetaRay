@@ -12,8 +12,12 @@ using namespace BetaRay::Utils;
 
 Color RayColor(Ray const & ray, Sphere const & sphere)
 {
-    if (sphere.Hit(ray))
-        return Color(1, 0, 0);
+    auto result = sphere.Hit(ray);
+    if (result.has_value())
+    {
+        auto normal = result.value().Normal;
+        return 0.5 * (normal + Vec(1.0));
+    }
 
     auto d = glm::clamp(ray.Direction, -1.0, 1.0);
     auto t = 0.5 * (ray.Direction.y + 1.0);

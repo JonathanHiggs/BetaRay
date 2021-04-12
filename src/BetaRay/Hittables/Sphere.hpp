@@ -1,6 +1,7 @@
 #pragma once
 
 #include <BetaRay/Ray.hpp>
+#include <BetaRay/Hittables/HitResult.hpp>
 
 
 namespace BetaRay::Hittables
@@ -16,15 +17,22 @@ namespace BetaRay::Hittables
             : Center(center), Radius(radius)
         { }
 
-        bool Hit(Ray const & ray) const
+        std::optional<HitResult> Hit(Ray const & ray) const
         {
             auto oc = ray.Origin - Center;
             auto a = glm::dot(ray.Direction, ray.Direction);
-            auto b = 2.0 * glm::dot(oc, ray.Direction);
+            auto halfB = glm::dot(oc, ray.Direction);
             auto c = glm::dot(oc, oc) - Radius * Radius;
-            auto discriminant = b * b - 4.0 * a * c;
+            auto discriminant = halfB * halfB - a * c;
 
-            return discriminant > 0.0;
+            if (discriminant < 0.0)
+                return std::nullopt;
+
+            auto intersect = (-halfB - glm::sqrt(discriminant)) / a;
+            auto point = ray.At(intersect);
+            auto normal = (point - Center) / Radius;
+
+            return HitResult { point, normal, intersect };
         }
     };
 
