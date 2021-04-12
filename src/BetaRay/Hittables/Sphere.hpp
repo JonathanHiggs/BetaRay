@@ -1,6 +1,7 @@
 #pragma once
 
 #include <BetaRay/Hittables/IHittable.hpp>
+#include <BetaRay/Materials/IMaterial.hpp>
 
 
 namespace BetaRay::Hittables
@@ -9,11 +10,14 @@ namespace BetaRay::Hittables
     class Sphere : public IHittable
     {
     public:
+        using MaterialPtr = Materials::IMaterial::shared_ptr;
+
         Point Center;
         Scalar Radius;
+        MaterialPtr Material;
 
-        Sphere(Point const & center, Scalar const & radius)
-            : Center(center), Radius(radius)
+        Sphere(Point const & center, Scalar const & radius, MaterialPtr material)
+            : Center(center), Radius(radius), Material(std::move(material))
         { }
 
         std::optional<HitResult> Hit(Ray const & ray, Scalar tMin, Scalar tMax) const override
@@ -47,6 +51,7 @@ namespace BetaRay::Hittables
                 point,
                 frontFace ? normal : -normal,
                 intersect,
+                Material,
                 frontFace };
         }
     };

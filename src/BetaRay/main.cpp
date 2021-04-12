@@ -3,27 +3,32 @@
 #include <BetaRay/Files/Image.hpp>
 #include <BetaRay/Hittables/HittableList.hpp>
 #include <BetaRay/Hittables/Sphere.hpp>
+#include <BetaRay/Materials/Lambertian.hpp>
+#include <BetaRay/Materials/Metal.hpp>
 #include <BetaRay/Utils/ProgressMeter.hpp>
 
 
 using namespace BetaRay;
 using namespace BetaRay::Files;
 using namespace BetaRay::Hittables;
+using namespace BetaRay::Materials;
 using namespace BetaRay::Utils;
 
 
 Color RayColor(Ray const & ray, IHittable const & scene, u32 depth = 256)
 {
     if (depth <= 0)
-        return Colors::White;
+        return Colors::Black;
 
-    auto result = scene.Hit(ray, 1e-4, std::numeric_limits<Scalar>::infinity());
-    if (result.has_value())
+    auto hitResult = scene.Hit(ray, 1e-4, std::numeric_limits<Scalar>::infinity());
+    if (hitResult.has_value())
     {
-        auto & res = result.value();
-        auto target = res.Point + res.Normal + glm::sphericalRand(1.0);
-        auto newRay = Ray(res.Point, target - res.Point);
-        return 0.5 * RayColor(newRay, scene, depth - 1);
+        auto hit = hitResult.value();
+        auto scatterResult = hit.Material->Scatter(ray, hit.Point, hit.Normal);
+
+        if (scatterResult.Scattered.has_value())
+            return scatterResult.Attenuation * RayColor(scatterResult.Scattered.value(), scene, depth - 1);
+        return Colors::Black;
     }
 
     auto d = glm::clamp(ray.Direction, -1.0, 1.0);
@@ -35,16 +40,23 @@ Color RayColor(Ray const & ray, IHittable const & scene, u32 depth = 256)
 int main()
 {
     // Image
-    Image image(480u, 360u);
-    auto const samplesPerPixel = 100u;
+    Image image(1920u, 1024u);
+    auto const samplesPerPixel = 40u;
 
     // Camera
     Camera camera(image.AspectRatio);
 
     // Scene
+    auto ground = std::make_shared<Lambertian>(Color(0.7, 0.8, 0.4));
+    auto center = std::make_shared<Lambertian>(Color(0.7, 0.3, 0.3));
+    auto left   = std::make_shared<Metal>(Color(0.8, 0.8, 0.8), 0.3);
+    auto right  = std::make_shared<Metal>(Color(0.8, 0.6, 0.2), 1.0);
+
     auto scene = HittableList();
-    scene.Objects.emplace_back(std::make_shared<Sphere>(Point(0, 0, -1), 0.5));
-    scene.Objects.emplace_back(std::make_shared<Sphere>(Point(0, -100.5, -1), 100));
+    scene.Objects.emplace_back(std::make_shared<Sphere>(Point( 0.0, -100.5, -1.0), 100.0, ground));
+    scene.Objects.emplace_back(std::make_shared<Sphere>(Point( 0.0,    0.0, -1.0),   0.5, center));
+    scene.Objects.emplace_back(std::make_shared<Sphere>(Point(-1.0,    0.0, -1.0),   0.5, left));
+    scene.Objects.emplace_back(std::make_shared<Sphere>(Point( 1.0,    0.0, -1.0),   0.5, right));
 
     // Render
     ProgressMeter meter(image.Height);
@@ -78,7 +90,7 @@ int main()
         }
     }
 
-    image.Save("img3.png");
+    image.Save("img4.png");
 
     return 0;
 }
