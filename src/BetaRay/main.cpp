@@ -1,3 +1,4 @@
+#include <BetaRay/Camera.hpp>
 #include <BetaRay/Ray.hpp>
 #include <BetaRay/Files/Image.hpp>
 #include <BetaRay/Hittables/HittableList.hpp>
@@ -30,16 +31,10 @@ int main()
 {
     // Image
     Image image(480u, 360u);
+    auto const samplesPerPixel = 24u;
 
     // Camera
-    auto viewportHeight = 2.0;
-    auto viewportWidth = image.AspectRatio * viewportHeight;
-    auto focalLength = 1.0;
-
-    auto origin = Point();
-    auto horizontal = Vec(viewportWidth, 0.0, 0.0);
-    auto vertical = Vec(0.0, viewportHeight, 0.0);
-    auto lowerLeft = origin - horizontal / 2.0 - vertical / 2.0 - Vec(0.0, 0.0, focalLength);
+    Camera camera(image.AspectRatio);
 
     // Scene
     auto scene = HittableList();
@@ -49,16 +44,26 @@ int main()
     // Render
     ProgressMeter meter(image.Height);
 
+    std::uniform_real_distribution<Scalar> distribution(0.0, 1.0);
+    std::mt19937 generator;
+
     for (auto y = 0u; y < image.Height; ++y)
     {
         for (auto x = 0u; x < image.Width; ++x)
         {
-            auto u = double(x) / (image.Width - 1u);
-            auto v = double(y) / (image.Height - 1u);
+            Color color(0.0);
 
-            auto ray = Ray(origin, lowerLeft + u * horizontal + v * vertical - origin);
+            for (auto i = 0u; i < samplesPerPixel; ++i)
+            {
+                auto u = (Scalar(x) + distribution(generator)) / (image.Width - 1u);
+                auto v = (Scalar(y) + distribution(generator)) / (image.Height - 1u);
 
-            auto color = RayColor(ray, scene);
+                auto ray = camera.RayFromViewport(u, v);
+
+                color += RayColor(ray, scene);
+            }
+
+            color = color / Scalar(samplesPerPixel);
 
             image.WritePixel(x, y, color);
 
