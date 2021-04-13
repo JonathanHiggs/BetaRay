@@ -42,10 +42,10 @@ int main()
 {
     // Image
     Image image(1920u, 1280u);
-    auto const samplesPerPixel = 100u;
+    auto const samplesPerPixel = 20u;
 
     // Camera
-    Camera camera(image.AspectRatio);
+    Camera camera(Point(-2, 3, 1), Point(0, 0, -1), Vec(0, 1, 0), 25.0, image.AspectRatio);
 
     // Scene
     auto ground = std::make_shared<Lambertian>(Color(0.7, 0.9, 0.5));
@@ -92,7 +92,7 @@ int main()
         }
     }
 
-    image.Save("img8.png");
+    image.Save("img10.png");
 
     return 0;
 }

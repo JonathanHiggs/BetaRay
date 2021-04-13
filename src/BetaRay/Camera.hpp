@@ -14,21 +14,27 @@ namespace BetaRay
         Vec Horizontal;
         Vec Vertical;
 
-        Camera(Scalar aspectRatio)
+        Camera(Point from, Point at, Vec up, Scalar vfov, Scalar aspectRatio)
         {
-            auto viewportHeight = 2.0;
-            auto viewportWidth = aspectRatio * viewportHeight;
-            auto focalLength = 1.2;
+            auto theta = glm::radians(vfov);
+            auto h = glm::tan(theta / 2.0);
 
-            Origin = Point(0.0, 0.0, 0.7);
-            Horizontal = Vec(viewportWidth, 0.0, 0.0);
-            Vertical = Vec(0.0, viewportHeight, 0.0);
-            LowerLeft = Origin - Horizontal / 2.0 - Vertical / 2.0 - Vec(0.0, 0.0, focalLength);
+            auto viewportHeight = 2.0 * h;
+            auto viewportWidth = aspectRatio * viewportHeight;
+
+            auto w = glm::normalize(from - at);
+            auto u = glm::normalize(glm::cross(up, w));
+            auto v = glm::normalize(glm::cross(w, u));
+
+            Origin = from;
+            Horizontal = viewportWidth * u;
+            Vertical = viewportHeight * v;
+            LowerLeft = Origin - Horizontal / 2.0 - Vertical / 2.0 - w;
         }
 
-        Ray RayFromViewport(Scalar u, Scalar v) const
+        Ray RayFromViewport(Scalar s, Scalar t) const
         {
-            return Ray(Origin, LowerLeft + u * Horizontal + v * Vertical - Origin);
+            return Ray(Origin, LowerLeft + s * Horizontal + t * Vertical - Origin);
         }
     };
 
