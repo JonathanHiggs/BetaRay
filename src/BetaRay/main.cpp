@@ -3,6 +3,7 @@
 #include <BetaRay/Files/Image.hpp>
 #include <BetaRay/Hittables/HittableList.hpp>
 #include <BetaRay/Hittables/Sphere.hpp>
+#include <BetaRay/Materials/Dielectric.hpp>
 #include <BetaRay/Materials/Lambertian.hpp>
 #include <BetaRay/Materials/Metal.hpp>
 #include <BetaRay/Utils/ProgressMeter.hpp>
@@ -24,7 +25,7 @@ Color RayColor(Ray const & ray, IHittable const & scene, u32 depth = 256)
     if (hitResult.has_value())
     {
         auto hit = hitResult.value();
-        auto scatterResult = hit.Material->Scatter(ray, hit.Point, hit.Normal);
+        auto scatterResult = hit.Material->Scatter(ray, hit.Point, hit.Normal, hit.FrontFace);
 
         if (scatterResult.Scattered.has_value())
             return scatterResult.Attenuation * RayColor(scatterResult.Scattered.value(), scene, depth - 1);
@@ -40,22 +41,23 @@ Color RayColor(Ray const & ray, IHittable const & scene, u32 depth = 256)
 int main()
 {
     // Image
-    Image image(1920u, 1024u);
-    auto const samplesPerPixel = 40u;
+    Image image(1920u, 1280u);
+    auto const samplesPerPixel = 100u;
 
     // Camera
     Camera camera(image.AspectRatio);
 
     // Scene
-    auto ground = std::make_shared<Lambertian>(Color(0.7, 0.8, 0.4));
-    auto center = std::make_shared<Lambertian>(Color(0.7, 0.3, 0.3));
-    auto left   = std::make_shared<Metal>(Color(0.8, 0.8, 0.8), 0.3);
-    auto right  = std::make_shared<Metal>(Color(0.8, 0.6, 0.2), 1.0);
+    auto ground = std::make_shared<Lambertian>(Color(0.7, 0.9, 0.5));
+    auto center = std::make_shared<Lambertian>(Color(0.3, 0.5, 0.8));
+    auto left   = std::make_shared<Dielectric>(1.5);
+    auto right  = std::make_shared<Metal>(Color(0.8, 0.6, 0.2), 0.05);
 
     auto scene = HittableList();
     scene.Objects.emplace_back(std::make_shared<Sphere>(Point( 0.0, -100.5, -1.0), 100.0, ground));
     scene.Objects.emplace_back(std::make_shared<Sphere>(Point( 0.0,    0.0, -1.0),   0.5, center));
     scene.Objects.emplace_back(std::make_shared<Sphere>(Point(-1.0,    0.0, -1.0),   0.5, left));
+    scene.Objects.emplace_back(std::make_shared<Sphere>(Point(-1.0,    0.0, -1.0),  -0.4, left));
     scene.Objects.emplace_back(std::make_shared<Sphere>(Point( 1.0,    0.0, -1.0),   0.5, right));
 
     // Render
@@ -90,7 +92,7 @@ int main()
         }
     }
 
-    image.Save("img4.png");
+    image.Save("img8.png");
 
     return 0;
 }

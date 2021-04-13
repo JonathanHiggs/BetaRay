@@ -14,7 +14,8 @@ namespace BetaRay::Materials
         virtual ScatterResult Scatter(
             Ray const & ray,
             Point const & point,
-            Vec const & normal) const = 0;
+            Vec const & normal,
+            bool frontFace) const = 0;
     };
 
 }

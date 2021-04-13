@@ -16,7 +16,8 @@ namespace BetaRay::Materials
         ScatterResult Scatter(
             Ray const & ray,
             Point const & point,
-            Vec const & normal) const override
+            Vec const & normal,
+            bool frontFace) const override
         {
             auto attenuation = Albedo;
 
