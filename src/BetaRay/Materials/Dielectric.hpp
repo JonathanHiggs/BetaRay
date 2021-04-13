@@ -37,7 +37,7 @@ namespace BetaRay::Materials
                 ? glm::reflect(direction, normal)
                 : glm::refract(direction, normal, refractionRatio);
 
-            auto scattered = Ray(point, refracted);
+            auto scattered = Ray(point, refracted, ray.Time);
 
             return ScatterResult(attenuation, scattered);
         }

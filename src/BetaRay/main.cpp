@@ -2,6 +2,7 @@
 #include <BetaRay/Ray.hpp>
 #include <BetaRay/Files/Image.hpp>
 #include <BetaRay/Hittables/HittableList.hpp>
+#include <BetaRay/Hittables/MovingSphere.hpp>
 #include <BetaRay/Hittables/Sphere.hpp>
 #include <BetaRay/Materials/Dielectric.hpp>
 #include <BetaRay/Materials/Lambertian.hpp>
@@ -55,29 +56,31 @@ std::unique_ptr<IHittable> RandomScene()
         for (auto b = -11; b < 11; ++b)
         {
             auto matRand = random();
-            auto position = Point(a + 0.9 * random(), 0.2, b + 0.9 * random());
+            auto center = Point(a + 0.9 * random(), 0.2, b + 0.9 * random());
 
-            if (glm::length(position - Point(4, 0.2, 0)) > 0.9)
+            if (glm::length(center - Point(4, 0.2, 0)) > 0.9)
             {
                 if (matRand < 0.6)
                 {
                     // diffuse
                     auto albedo = Color(random(), random(), random()) * Color(random(), random(), random());
                     auto material = std::make_shared<Lambertian>(albedo);
-                    scene->Objects.emplace_back(std::make_shared<Sphere>(position, 0.2, material));
+                    auto center2 = center + Vec(0.0, dist(gen) * 0.5, 0.0);
+                    scene->Objects.emplace_back(std::make_shared<MovingSphere>(
+                        center, center2, 0.0, 1.0, 0.2, material));
                 }
                 else if (matRand < 0.85)
                 {
                     // metal
                     auto albedo = Color(0.5) + 0.5 * Color(random(), random(), random());
                     auto material = std::make_shared<Metal>(albedo, random() * 0.5);
-                    scene->Objects.emplace_back(std::make_shared<Sphere>(position, 0.2, material));
+                    scene->Objects.emplace_back(std::make_shared<Sphere>(center, 0.2, material));
                 }
                 else
                 {
                     // glass
                     auto material = std::make_shared<Dielectric>(1.5);
-                    scene->Objects.emplace_back(std::make_shared<Sphere>(position, 0.2, material));
+                    scene->Objects.emplace_back(std::make_shared<Sphere>(center, 0.2, material));
                 }
             }
         }
@@ -99,8 +102,9 @@ std::unique_ptr<IHittable> RandomScene()
 int main()
 {
     // Image
-    Image image(3840u, 2160u);
-    auto const samplesPerPixel = 60u;
+    //Image image(3840u, 2160u);
+    Image image(1920u, 1024u);
+    auto const samplesPerPixel = 100u;
 
     // Camera
     auto from           = Point(13.0, 3.0, 3.0);
@@ -109,8 +113,10 @@ int main()
     auto vfov           = 20.0;
     auto aperture       = 0.1;
     auto focalDistance  = 10.0; //glm::length(from - to);
+    auto time0          = 0.0;
+    auto time1          = 0.3;
 
-    Camera camera(from, to, up, vfov, image.AspectRatio, aperture, focalDistance);
+    Camera camera(from, to, up, vfov, image.AspectRatio, aperture, focalDistance, time0, time1);
 
     // Scene
     auto scene = RandomScene();
@@ -147,7 +153,7 @@ int main()
         }
     }
 
-    image.Save("img14.png");
+    image.Save("img15.png");
 
     return 0;
 }

@@ -24,7 +24,7 @@ namespace BetaRay::Materials
             // ToDo: pass generator though
             auto direction = glm::sphericalRand(1.0);
             direction = glm::dot(direction, normal) > 0.0 ? direction : -direction;
-            auto scattered = Ray(point, normal + direction);
+            auto scattered = Ray(point, normal + direction, ray.Time);
 
             return ScatterResult(attenuation, scattered);
         }

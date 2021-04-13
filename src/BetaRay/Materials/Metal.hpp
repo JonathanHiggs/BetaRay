@@ -25,7 +25,7 @@ namespace BetaRay::Materials
             auto attenuation = Albedo;
 
             auto reflected = glm::reflect(glm::normalize(ray.Direction), normal) + glm::sphericalRand(Fuzz);
-            auto scatteredRay = Ray(point, reflected);
+            auto scatteredRay = Ray(point, reflected, ray.Time);
             auto scattered = glm::dot(scatteredRay.Direction, normal) > 0.0;
 
             if (scattered)
