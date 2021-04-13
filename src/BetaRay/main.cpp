@@ -38,34 +38,82 @@ Color RayColor(Ray const & ray, IHittable const & scene, u32 depth = 256)
 }
 
 
+std::unique_ptr<IHittable> RandomScene()
+{
+    auto scene = std::make_unique<HittableList>();
+
+    auto groundMaterial = std::make_shared<Lambertian>(Color(0.5, 0.6, 0.4));
+    scene->Objects.emplace_back(std::make_shared<Sphere>(Point(0, -1000, 0), 1000, groundMaterial));
+
+    std::uniform_real_distribution dist(0.0, 1.0);
+    std::mt19937 gen;
+
+    auto random = [&]() { return dist(gen); };
+
+    for (auto a = -11; a < 11; ++a)
+    {
+        for (auto b = -11; b < 11; ++b)
+        {
+            auto matRand = random();
+            auto position = Point(a + 0.9 * random(), 0.2, b + 0.9 * random());
+
+            if (glm::length(position - Point(4, 0.2, 0)) > 0.9)
+            {
+                if (matRand < 0.6)
+                {
+                    // diffuse
+                    auto albedo = Color(random(), random(), random()) * Color(random(), random(), random());
+                    auto material = std::make_shared<Lambertian>(albedo);
+                    scene->Objects.emplace_back(std::make_shared<Sphere>(position, 0.2, material));
+                }
+                else if (matRand < 0.85)
+                {
+                    // metal
+                    auto albedo = Color(0.5) + 0.5 * Color(random(), random(), random());
+                    auto material = std::make_shared<Metal>(albedo, random() * 0.5);
+                    scene->Objects.emplace_back(std::make_shared<Sphere>(position, 0.2, material));
+                }
+                else
+                {
+                    // glass
+                    auto material = std::make_shared<Dielectric>(1.5);
+                    scene->Objects.emplace_back(std::make_shared<Sphere>(position, 0.2, material));
+                }
+            }
+        }
+    }
+
+    auto material1 = std::make_shared<Dielectric>(1.5);
+    scene->Objects.emplace_back(std::make_shared<Sphere>(Point(0, 1, 0), 1.0, material1));
+
+    auto material2 = std::make_shared<Lambertian>(Color(0.4, 0.2, 0.1));
+    scene->Objects.emplace_back(std::make_shared<Sphere>(Point(-4, 1, 0), 1.0, material2));
+
+    auto material3 = std::make_shared<Metal>(Color(0.7, 0.6, 0.5), 0.0);
+    scene->Objects.emplace_back(std::make_shared<Sphere>(Point(4, 1, 0), 1.0, material3));
+
+    return scene;
+}
+
+
 int main()
 {
     // Image
-    Image image(1920u, 1280u);
-    auto const samplesPerPixel = 20u;
+    Image image(3840u, 2160u);
+    auto const samplesPerPixel = 60u;
 
     // Camera
-    auto from           = Point(3, 3,  2);
-    auto to             = Point(0, 0, -1);
-    auto up             = Point(0, 1,  0);
-    auto vfov           = 25.0;
-    auto aperture       = 1.0;
-    auto focalDistance  = glm::length(from - to);
+    auto from           = Point(13.0, 3.0, 3.0);
+    auto to             = Point( 0.0, 0.2, 0.0);
+    auto up             = Point( 0.0, 1.0, 0.0);
+    auto vfov           = 20.0;
+    auto aperture       = 0.1;
+    auto focalDistance  = 10.0; //glm::length(from - to);
 
     Camera camera(from, to, up, vfov, image.AspectRatio, aperture, focalDistance);
 
     // Scene
-    auto ground = std::make_shared<Lambertian>(Color(0.7, 0.9, 0.5));
-    auto center = std::make_shared<Lambertian>(Color(0.3, 0.5, 0.8));
-    auto left   = std::make_shared<Dielectric>(1.5);
-    auto right  = std::make_shared<Metal>(Color(0.8, 0.6, 0.2), 0.05);
-
-    auto scene = HittableList();
-    scene.Objects.emplace_back(std::make_shared<Sphere>(Point( 0.0, -100.5, -1.0), 100.0, ground));
-    scene.Objects.emplace_back(std::make_shared<Sphere>(Point( 0.0,    0.0, -1.0),   0.5, center));
-    scene.Objects.emplace_back(std::make_shared<Sphere>(Point(-1.0,    0.0, -1.0),   0.5, left));
-    scene.Objects.emplace_back(std::make_shared<Sphere>(Point(-1.0,    0.0, -1.0),  -0.4, left));
-    scene.Objects.emplace_back(std::make_shared<Sphere>(Point( 1.0,    0.0, -1.0),   0.5, right));
+    auto scene = RandomScene();
 
     // Render
     ProgressMeter meter(image.Height);
@@ -86,7 +134,7 @@ int main()
 
                 auto ray = camera.RayFromViewport(u, v);
 
-                color += RayColor(ray, scene);
+                color += RayColor(ray, *scene);
             }
 
             // Gamma correction
@@ -99,7 +147,7 @@ int main()
         }
     }
 
-    image.Save("img12.png");
+    image.Save("img14.png");
 
     return 0;
 }
