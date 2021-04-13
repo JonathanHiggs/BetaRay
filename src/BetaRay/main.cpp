@@ -45,7 +45,14 @@ int main()
     auto const samplesPerPixel = 20u;
 
     // Camera
-    Camera camera(Point(-2, 3, 1), Point(0, 0, -1), Vec(0, 1, 0), 25.0, image.AspectRatio);
+    auto from           = Point(3, 3,  2);
+    auto to             = Point(0, 0, -1);
+    auto up             = Point(0, 1,  0);
+    auto vfov           = 25.0;
+    auto aperture       = 1.0;
+    auto focalDistance  = glm::length(from - to);
+
+    Camera camera(from, to, up, vfov, image.AspectRatio, aperture, focalDistance);
 
     // Scene
     auto ground = std::make_shared<Lambertian>(Color(0.7, 0.9, 0.5));
@@ -92,7 +99,7 @@ int main()
         }
     }
 
-    image.Save("img10.png");
+    image.Save("img12.png");
 
     return 0;
 }
