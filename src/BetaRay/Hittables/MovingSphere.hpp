@@ -37,11 +37,11 @@ namespace BetaRay::Hittables
 
         Point Center(Scalar time) const
         {
-            assert(time0 <= time && time <= time1);
+            assert(Time0 <= time && time <= Time1);
             return Center0 + ((time - Time0) / (Time1 - Time0)) * (Center1 - Center0);
         }
 
-        std::optional<HitResult> Hit(Ray const & ray, Scalar tMin, Scalar tMax) const override
+        HitResultOpt Hit(Ray const & ray, Scalar tMin, Scalar tMax) const override
         {
             auto oc = ray.Origin - Center(ray.Time);
             auto a = glm::dot(ray.Direction, ray.Direction);
@@ -74,6 +74,15 @@ namespace BetaRay::Hittables
                 intersect,
                 Material,
                 frontFace };
+        }
+
+        BoundingBox Bounds(Scalar time0, Scalar time1) const override
+        {
+            auto radius = std::abs(Radius);
+
+            return BoundingBox::Surround(
+                BoundingBox(Center(time0) - Vec(radius), Center(time0) + Vec(radius)),
+                BoundingBox(Center(time1) - Vec(radius), Center(time1) + Vec(radius)));
         }
     };
 

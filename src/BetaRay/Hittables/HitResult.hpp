@@ -18,6 +18,7 @@ namespace BetaRay::Hittables
         bool FrontFace;
     };
 
+    // ToDo: maybe rename: OptionalHitResult;
     using HitResultOpt = std::optional<HitResult>;
 
 }

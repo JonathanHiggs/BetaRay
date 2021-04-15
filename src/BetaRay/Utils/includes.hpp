@@ -2,7 +2,9 @@
 
 #include <algorithm>
 #include <cassert>
+#include <chrono>
 #include <cstdint>
+#include <functional>
 #include <iostream>
 #include <limits>
 #include <memory>

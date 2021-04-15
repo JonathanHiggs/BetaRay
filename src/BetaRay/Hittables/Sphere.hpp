@@ -20,7 +20,7 @@ namespace BetaRay::Hittables
             : Center(center), Radius(radius), Material(std::move(material))
         { }
 
-        std::optional<HitResult> Hit(Ray const & ray, Scalar tMin, Scalar tMax) const override
+        HitResultOpt Hit(Ray const & ray, Scalar tMin, Scalar tMax) const override
         {
             auto oc = ray.Origin - Center;
             auto a = glm::dot(ray.Direction, ray.Direction);
@@ -53,6 +53,12 @@ namespace BetaRay::Hittables
                 intersect,
                 Material,
                 frontFace };
+        }
+
+        BoundingBox Bounds(Scalar time0, Scalar time1) const override
+        {
+            auto radius = std::abs(Radius);
+            return BoundingBox(Center - Vec(radius), Center + Vec(radius));
         }
     };
 

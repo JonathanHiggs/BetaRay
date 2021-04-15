@@ -1,6 +1,7 @@
 #include <BetaRay/Camera.hpp>
 #include <BetaRay/Ray.hpp>
 #include <BetaRay/Files/Image.hpp>
+#include <BetaRay/Hittables/BvhNode.hpp>
 #include <BetaRay/Hittables/HittableList.hpp>
 #include <BetaRay/Hittables/MovingSphere.hpp>
 #include <BetaRay/Hittables/Sphere.hpp>
@@ -8,6 +9,7 @@
 #include <BetaRay/Materials/Lambertian.hpp>
 #include <BetaRay/Materials/Metal.hpp>
 #include <BetaRay/Utils/ProgressMeter.hpp>
+#include <BetaRay/Utils/Timer.hpp>
 
 
 using namespace BetaRay;
@@ -51,9 +53,10 @@ std::unique_ptr<IHittable> RandomScene()
 
     auto random = [&]() { return dist(gen); };
 
-    for (auto a = -11; a < 11; ++a)
+    constexpr auto size = 11;
+    for (auto a = -size; a < size; ++a)
     {
-        for (auto b = -11; b < 11; ++b)
+        for (auto b = -size; b < size; ++b)
         {
             auto matRand = random();
             auto center = Point(a + 0.9 * random(), 0.2, b + 0.9 * random());
@@ -65,7 +68,7 @@ std::unique_ptr<IHittable> RandomScene()
                     // diffuse
                     auto albedo = Color(random(), random(), random()) * Color(random(), random(), random());
                     auto material = std::make_shared<Lambertian>(albedo);
-                    auto center2 = center + Vec(0.0, dist(gen) * 0.5, 0.0);
+                    auto center2 = center + Vec(0.0, dist(gen) * 0.1, 0.0);
                     scene->Objects.emplace_back(std::make_shared<MovingSphere>(
                         center, center2, 0.0, 1.0, 0.2, material));
                 }
@@ -95,16 +98,20 @@ std::unique_ptr<IHittable> RandomScene()
     auto material3 = std::make_shared<Metal>(Color(0.7, 0.6, 0.5), 0.0);
     scene->Objects.emplace_back(std::make_shared<Sphere>(Point(4, 1, 0), 1.0, material3));
 
-    return scene;
+    //return scene;
+    return std::make_unique<BvhNode>(*scene, 0.0, 0.3);
 }
 
 
 int main()
 {
+    Timer render(std::cout, "Rendering");
+
     // Image
     //Image image(3840u, 2160u);
-    Image image(1920u, 1024u);
-    auto const samplesPerPixel = 100u;
+    //Image image(1920u, 1024u);
+    Image image(640u, 480u);
+    auto const samplesPerPixel = 50u;
 
     // Camera
     auto from           = Point(13.0, 3.0, 3.0);
@@ -153,7 +160,9 @@ int main()
         }
     }
 
-    image.Save("img15.png");
+    std::cout << '\n';
+
+    image.Save("img17.png");
 
     return 0;
 }
