@@ -1,6 +1,8 @@
 #pragma once
 
 #include <BetaRay/Materials/IMaterial.hpp>
+#include <BetaRay/Textures/ITexture.hpp>
+#include <BetaRay/Textures/SolidColor.hpp>
 
 
 namespace BetaRay::Materials
@@ -9,17 +11,20 @@ namespace BetaRay::Materials
     class Lambertian : public IMaterial
     {
     public:
-        Color Albedo;
+        Textures::ITexture::shared_ptr Albedo;
 
-        Lambertian(Color const & albedo) : Albedo(albedo) { }
+        Lambertian(Color const & albedo) : Albedo(std::make_shared<Textures::SolidColor>(albedo)) { }
+
+        Lambertian(Textures::ITexture::shared_ptr albedo) : Albedo(std::move(albedo)) { }
 
         ScatterResult Scatter(
             Ray const & ray,
             Point const & point,
-            Vec const & normal,
+            Vec3 const & normal,
+            Vec2 const & uv,
             bool frontFace) const override
         {
-            auto attenuation = Albedo;
+            auto attenuation = Albedo->Value(uv, point);
 
             // ToDo: pass generator though
             auto direction = glm::sphericalRand(1.0);

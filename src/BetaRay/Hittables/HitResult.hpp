@@ -12,7 +12,8 @@ namespace BetaRay::Hittables
         using MaterialPtr = Materials::IMaterial::shared_ptr;
 
         Point Point;
-        Vec Normal;
+        Vec3 Normal;
+        Vec2 UV;
         Scalar Intersect;
         MaterialPtr Material;
         bool FrontFace;

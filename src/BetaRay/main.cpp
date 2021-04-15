@@ -8,6 +8,7 @@
 #include <BetaRay/Materials/Dielectric.hpp>
 #include <BetaRay/Materials/Lambertian.hpp>
 #include <BetaRay/Materials/Metal.hpp>
+#include <BetaRay/Textures/CheckerTexture.hpp>
 #include <BetaRay/Utils/ProgressMeter.hpp>
 #include <BetaRay/Utils/Timer.hpp>
 
@@ -16,6 +17,7 @@ using namespace BetaRay;
 using namespace BetaRay::Files;
 using namespace BetaRay::Hittables;
 using namespace BetaRay::Materials;
+using namespace BetaRay::Textures;
 using namespace BetaRay::Utils;
 
 
@@ -28,7 +30,7 @@ Color RayColor(Ray const & ray, IHittable const & scene, u32 depth = 256)
     if (hitResult.has_value())
     {
         auto hit = hitResult.value();
-        auto scatterResult = hit.Material->Scatter(ray, hit.Point, hit.Normal, hit.FrontFace);
+        auto scatterResult = hit.Material->Scatter(ray, hit.Point, hit.Normal, hit.UV, hit.FrontFace);
 
         if (scatterResult.Scattered.has_value())
             return scatterResult.Attenuation * RayColor(scatterResult.Scattered.value(), scene, depth - 1);
@@ -45,7 +47,8 @@ std::unique_ptr<IHittable> RandomScene()
 {
     auto scene = std::make_unique<HittableList>();
 
-    auto groundMaterial = std::make_shared<Lambertian>(Color(0.5, 0.6, 0.4));
+    auto checkerTexture = std::make_shared<CheckerTexture>(Color(0.5, 0.6, 0.4), Color(0.9, 0.9, 0.9));
+    auto groundMaterial = std::make_shared<Lambertian>(checkerTexture);
     scene->Objects.emplace_back(std::make_shared<Sphere>(Point(0, -1000, 0), 1000, groundMaterial));
 
     std::uniform_real_distribution dist(0.0, 1.0);
@@ -68,7 +71,7 @@ std::unique_ptr<IHittable> RandomScene()
                     // diffuse
                     auto albedo = Color(random(), random(), random()) * Color(random(), random(), random());
                     auto material = std::make_shared<Lambertian>(albedo);
-                    auto center2 = center + Vec(0.0, dist(gen) * 0.1, 0.0);
+                    auto center2 = center + Vec3(0.0, dist(gen) * 0.1, 0.0);
                     scene->Objects.emplace_back(std::make_shared<MovingSphere>(
                         center, center2, 0.0, 1.0, 0.2, material));
                 }
@@ -108,10 +111,10 @@ int main()
     Timer render(std::cout, "Rendering");
 
     // Image
-    //Image image(3840u, 2160u);
+    Image image(3840u, 2160u);
     //Image image(1920u, 1024u);
-    Image image(640u, 480u);
-    auto const samplesPerPixel = 50u;
+    //Image image(640u, 480u);
+    auto const samplesPerPixel = 40u;
 
     // Camera
     auto from           = Point(13.0, 3.0, 3.0);
@@ -162,7 +165,7 @@ int main()
 
     std::cout << '\n';
 
-    image.Save("img17.png");
+    image.Save("img18.png");
 
     return 0;
 }

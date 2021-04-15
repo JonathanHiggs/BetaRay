@@ -11,16 +11,16 @@ namespace BetaRay
     public:
         Point Origin;
         Point LowerLeft;
-        Vec Horizontal;
-        Vec Vertical;
-        Vec u, v, w;
+        Vec3 Horizontal;
+        Vec3 Vertical;
+        Vec3 u, v, w;
         Scalar AspectRatio;
         Scalar LensRadius;
         Scalar FocalDistance;
         Scalar Time0, Time1;
 
         Camera(
-            Point from, Point at, Vec up,
+            Point from, Point at, Vec3 up,
             Scalar vfov, Scalar aspectRatio,
             Scalar aperture, Scalar focalDistance,
             Scalar time0, Scalar time1)

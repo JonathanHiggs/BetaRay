@@ -33,11 +33,12 @@ namespace BetaRay
     using r64 = double;
 
     using Scalar = r64;
-    using Vec = glm::dvec3;
+    using Vec2 = glm::dvec2;
+    using Vec3 = glm::dvec3;
 
     using Distance = Scalar;
-    using Point = Vec;
-    using Color = Vec;
+    using Point = Vec3;
+    using Color = Vec3;
 
 
     namespace Colors

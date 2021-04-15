@@ -63,17 +63,14 @@ namespace BetaRay::Hittables
                     return std::nullopt;
             }
 
-            auto intersect = root;
-            auto point = ray.At(intersect);
-            auto normal = (point - Center(ray.Time)) / Radius;
-            bool frontFace = glm::dot(ray.Direction, normal) < 0.0;
+            auto intersect  = root;
+            auto point      = ray.At(intersect);
+            auto uv         = UV(point, ray.Time);
+            auto normal     = (point - Center(ray.Time)) / Radius;
+            bool frontFace  = glm::dot(ray.Direction, normal) < 0.0;
+            normal          = frontFace ? normal : -normal;
 
-            return HitResult {
-                point,
-                frontFace ? normal : -normal,
-                intersect,
-                Material,
-                frontFace };
+            return HitResult { point, normal, uv, intersect, Material, frontFace };
         }
 
         BoundingBox Bounds(Scalar time0, Scalar time1) const override
@@ -81,8 +78,20 @@ namespace BetaRay::Hittables
             auto radius = std::abs(Radius);
 
             return BoundingBox::Surround(
-                BoundingBox(Center(time0) - Vec(radius), Center(time0) + Vec(radius)),
-                BoundingBox(Center(time1) - Vec(radius), Center(time1) + Vec(radius)));
+                BoundingBox(Center(time0) - Vec3(radius), Center(time0) + Vec3(radius)),
+                BoundingBox(Center(time1) - Vec3(radius), Center(time1) + Vec3(radius)));
+        }
+
+        Vec2 UV(Point const & point, Scalar time) const
+        {
+            auto p = glm::normalize(point - Center(time));
+
+            auto theta = glm::acos(-p.y);
+            auto phi = glm::atan(-p.z, p.x) + glm::pi<Scalar>();
+
+            return Vec2(
+                phi / glm::two_pi<Scalar>(),
+                theta / glm::pi<Scalar>());
         }
     };
 

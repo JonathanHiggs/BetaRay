@@ -10,10 +10,10 @@ namespace BetaRay
     {
     public:
         Point Origin;
-        Vec Direction;
+        Vec3 Direction;
         Scalar Time;
 
-        Ray(Point const & origin, Vec const & direction, Scalar time)
+        Ray(Point const & origin, Vec3 const & direction, Scalar time)
             : Origin(origin), Direction(direction), Time(time)
         { }
 
