@@ -27,42 +27,31 @@ namespace BetaRay::Hittables
             // ToDo: hoist these out
             static std::uniform_int_distribution<size_t> dist(0, 2);
             static std::mt19937 gen;
+
+            // ToDo: better way than guessing an axis?
             int axis = dist(gen);
 
             auto comparator = [=](shared_ptr const & a, shared_ptr const & b) {
                 auto aBox = a->Bounds(time0, time1);
                 auto bBox = b->Bounds(time0, time1);
-                return aBox.Minimum[axis] < bBox.Minimum[axis];
-            };
+                return aBox.Minimum[axis] < bBox.Minimum[axis]; };
 
             auto span = end - start;
+            assert(span != 1);
 
-            if (span == 1)
+            if (span == 2)
             {
-                Left = Right = objects[start];
-            }
-            else if (span == 2)
-            {
-#if 0
-                if (comparator(objects[start], objects[start + 1]))
-                {
-                    Left  = objects[start];
-                    Right = objects[start + 1];
-                } else {
-                    Left  = objects[start + 1];
-                    Right = objects[start];
-                }
-#else
                 Left  = objects[start];
                 Right = objects[start + 1];
-#endif
             }
             else
             {
                 std::sort(std::begin(objects) + start, std::begin(objects) + end, comparator);
 
                 auto mid = start + span / 2;
-                Left  = std::make_shared<BvhNode>(objects, start, mid, time0, time1);
+                if (span == 3)  Left = objects[start];
+                else            Left = std::make_shared<BvhNode>(objects, start, mid, time0, time1);
+
                 Right = std::make_shared<BvhNode>(objects, mid, end, time0, time1);
             }
 

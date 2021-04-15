@@ -21,33 +21,19 @@ namespace BetaRay::Hittables
 
             auto hits = Objects | std::views::transform(testHit) | std::views::filter(filterMiss);
 
-#if 1
             // ToDo: Benchmark
             if (std::ranges::empty(hits))
                 return std::nullopt;
 
             return *std::ranges::min_element(hits, compareByDistance);
-#else
-            auto it = std::rnages::min_element(hits, compare);
-            return it != std::end(hits) ? *it : std::nullopt;
-#endif
         }
 
         BoundingBox Bounds(Scalar time0, Scalar time1) const override
         {
-#if 1
-            BoundingBox box;
-
-            for (auto const & object : Objects)
-                box = BoundingBox::Surround(box, object->Bounds(time0, time1));
-
-            return box;
-#else
-            auto surround = [=](shared_ptr const & a, shared_ptr const & b) {
-                return BoundingBox::Surround(a->Bounds(time0, time1), b->Bounds(time0, time1)); }
+            auto surround = [=](BoundingBox const & box, shared_ptr const & hittable) {
+                return BoundingBox::Surround(box, hittable->Bounds(time0, time1)); };
 
             return std::accumulate(std::begin(Objects), std::end(Objects), BoundingBox(), surround);
-#endif
         }
     };
 
