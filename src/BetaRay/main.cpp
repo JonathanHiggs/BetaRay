@@ -8,8 +8,11 @@
 #include <BetaRay/Materials/Dielectric.hpp>
 #include <BetaRay/Materials/Lambertian.hpp>
 #include <BetaRay/Materials/Metal.hpp>
+#include <BetaRay/Noise/Perlin.hpp>
+#include <BetaRay/Noise/Turbulent.hpp>
 #include <BetaRay/Textures/CheckerTexture.hpp>
 #include <BetaRay/Textures/NoiseTexture.hpp>
+#include <BetaRay/Textures/PhaseAdjustedNoiseTexture.hpp>
 #include <BetaRay/Utils/ProgressMeter.hpp>
 #include <BetaRay/Utils/Timer.hpp>
 
@@ -18,6 +21,7 @@ using namespace BetaRay;
 using namespace BetaRay::Files;
 using namespace BetaRay::Hittables;
 using namespace BetaRay::Materials;
+using namespace BetaRay::Noise;
 using namespace BetaRay::Textures;
 using namespace BetaRay::Utils;
 
@@ -111,15 +115,19 @@ std::unique_ptr<IHittable> TwoPerlinSpheres()
 {
     auto scene = std::make_unique<HittableList>();
 
-    auto noiseTexture = std::make_shared<NoiseTexture>(4.0);
+    auto perlinNoise = std::make_shared<Perlin>();
+    auto turbulentNoise = std::make_shared<Turbulent>(perlinNoise);
+
+    auto phasedPerlinTexture = std::make_shared<PhaseAdjustedNoiseTexture>(turbulentNoise);
+    auto turbulentTexture = std::make_shared<NoiseTexture>(turbulentNoise, 4.0);
 
     scene->Objects.emplace_back(
         std::make_shared<Sphere>(
-            Point(0, -1000, 0), 1000, std::make_shared<Lambertian>(noiseTexture)));
+            Point(0, -1000, 0), 1000, std::make_shared<Lambertian>(turbulentTexture)));
 
     scene->Objects.emplace_back(
         std::make_shared<Sphere>(
-            Point(0, 2, 0), 2, std::make_shared<Lambertian>(noiseTexture)));
+            Point(0, 2, 0), 2, std::make_shared<Lambertian>(phasedPerlinTexture)));
 
     return scene;
 }
@@ -185,7 +193,7 @@ int main()
 
     std::cout << '\n';
 
-    image.Save("img21.png");
+    image.Save("img23.png");
 
     return 0;
 }
