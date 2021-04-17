@@ -9,6 +9,7 @@
 #include <BetaRay/Materials/Lambertian.hpp>
 #include <BetaRay/Materials/Metal.hpp>
 #include <BetaRay/Textures/CheckerTexture.hpp>
+#include <BetaRay/Textures/NoiseTexture.hpp>
 #include <BetaRay/Utils/ProgressMeter.hpp>
 #include <BetaRay/Utils/Timer.hpp>
 
@@ -106,30 +107,49 @@ std::unique_ptr<IHittable> RandomScene()
 }
 
 
+std::unique_ptr<IHittable> TwoPerlinSpheres()
+{
+    auto scene = std::make_unique<HittableList>();
+
+    auto noiseTexture = std::make_shared<NoiseTexture>(4.0);
+
+    scene->Objects.emplace_back(
+        std::make_shared<Sphere>(
+            Point(0, -1000, 0), 1000, std::make_shared<Lambertian>(noiseTexture)));
+
+    scene->Objects.emplace_back(
+        std::make_shared<Sphere>(
+            Point(0, 2, 0), 2, std::make_shared<Lambertian>(noiseTexture)));
+
+    return scene;
+}
+
+
 int main()
 {
     Timer render(std::cout, "Rendering");
 
     // Image
-    Image image(3840u, 2160u);
+    //Image image(3840u, 2160u);
     //Image image(1920u, 1024u);
-    //Image image(640u, 480u);
+    Image image(640u, 480u);
     auto const samplesPerPixel = 40u;
 
     // Camera
-    auto from           = Point(13.0, 3.0, 3.0);
-    auto to             = Point( 0.0, 0.2, 0.0);
+    auto from           = Point(13.0, 2.0, 3.0);
+    auto to             = Point( 0.0, 0.0, 0.0);
     auto up             = Point( 0.0, 1.0, 0.0);
     auto vfov           = 20.0;
-    auto aperture       = 0.1;
-    auto focalDistance  = 10.0; //glm::length(from - to);
+    auto aperture       = 0.01;
+    auto focalDistance  = glm::length(from - to);
     auto time0          = 0.0;
     auto time1          = 0.3;
 
     Camera camera(from, to, up, vfov, image.AspectRatio, aperture, focalDistance, time0, time1);
 
     // Scene
-    auto scene = RandomScene();
+    //auto scene = RandomScene();
+    auto scene = TwoPerlinSpheres();
 
     // Render
     ProgressMeter meter(image.Height);
@@ -165,7 +185,7 @@ int main()
 
     std::cout << '\n';
 
-    image.Save("img18.png");
+    image.Save("img21.png");
 
     return 0;
 }
