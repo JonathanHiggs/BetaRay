@@ -11,6 +11,7 @@ namespace BetaRay::Hittables
     {
     public:
         using shared_ptr = std::shared_ptr<IHittable const>;
+        using unique_ptr = std::unique_ptr<IHittable const>;
 
         virtual HitResultOpt Hit(Ray const & ray, Scalar tMin, Scalar tMax) const = 0;
         virtual BoundingBox Bounds(Scalar time0, Scalar time1) const = 0;

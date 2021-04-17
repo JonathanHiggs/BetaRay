@@ -16,6 +16,8 @@ namespace BetaRay::Files
     {
     public:
         using size_type = u32;
+        using shared_ptr = std::shared_ptr<Image>;
+        using unique_ptr = std::unique_ptr<Image>;
 
         size_type Width;
         size_type Height;
@@ -64,16 +66,16 @@ namespace BetaRay::Files
 
         Color ReadPixel(size_type x, size_type y) const
         {
-            x = glm::clamp(x, 0u, Width);
-            y = glm::clamp(y, 0u, Height);
+            x = glm::clamp(x, 0u, Width - 1);
+            y = glm::clamp(y, 0u, Height - 1);
 
             auto index = Channels * (y * Width + x);
 
             assert(index + Channels - 1 < Data.size());
 
-            auto r = Scalar(Data[index + 0u]) / ColorScale;
-            auto g = Scalar(Data[index + 1u]) / ColorScale;
-            auto b = Scalar(Data[index + 2u]) / ColorScale;
+            auto r = Scalar(Data[index + 0u]) * ColorScale;
+            auto g = Scalar(Data[index + 1u]) * ColorScale;
+            auto b = Scalar(Data[index + 2u]) * ColorScale;
 
             return Color(r, g, b);
         }
